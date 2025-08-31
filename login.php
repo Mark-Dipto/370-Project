@@ -3,29 +3,29 @@ session_start();
 $login = false;
 $showError = false;
 
-if($_SERVER['REQUEST_METHOD']=="POST"){
+if($_SERVER['REQUEST_METHOD'] == "POST"){
     include 'Partials/_dbconnect[login].php';
-    $username = $_POST["username"];
     $password = $_POST["password"];
     $email = $_POST["email"];
 
-    if($username == "" || $email == "" || $password == ""){
+    if($email == "" || $password == ""){
         $showError = "Please fill all the fields";
-    } else {
-        $sql = "SELECT * FROM customer WHERE name='$username' AND email='$email'";
-        $result = mysqli_query($conn,$sql);
+    }else{
+        $sql = "SELECT * FROM customer WHERE email='$email' AND password='$password'";
+        $result = mysqli_query($conn, $sql);
         $row = mysqli_fetch_assoc($result);
 
         if($row){
-            if(($password == $row['password'])){//If we don't use password_hash then password_verify() will not work
-                $login = true;
-                $_SESSION['loggedin'] = true;
-                $_SESSION['username'] = $username;
-                $_SESSION['email'] = $email;
-            } else {
-                $showError = "Invalid Credentials";
-            }
-        } else {
+            $login = true;
+            $_SESSION['loggedin'] = true;
+            $_SESSION['email'] = $email;
+            $_SESSION['password'] = $password;
+            $_SESSION['address'] = $row['address'];
+            $_SESSION['name'] = $row['name'];
+            $_SESSION['customer_id'] = $row['customer_id'];
+            header("Location: product_list.php");
+            exit();
+        }else{
             $showError = "Invalid Credentials";
         }
     }
@@ -34,67 +34,80 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  form {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+
+  input[type="email"],
+  input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+  .form-text {
+    font-size: 0.9em;
+    color: #6c757d;
+  }
+
+  .btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .btn:hover {
+    background-color: #0056b3;
+  }
+
+  .alert {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 4px;
+    color: white;
+    background-color: #dc3545;
+  }
+</style>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LOGIN</title>
-<!-- Some basic css for styling -->
-        <style>
-        body {
-            background: #f5f6fa;
-            font-family: Arial, sans-serif;
-        }
-        .login-container {
-            max-width: 400px;
-            margin: 60px auto;
-            padding: 30px 25px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .form-group {
-            margin-bottom: 18px;
-        }
-        label {
-            font-weight: bold;
-        }
-        .btn-primary {
-            width: 100%;
-            background: #007bff;
-            border: none;
-            color: #fff;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .btn-primary:hover {
-            background: #0056b3;
-        }
-        .alert {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 4px;
-        }
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-    </style>
-<!-- End of basic css for styling -->
 </head>
 <body>
     <form method="POST">
-      <div class="form-group">
-        <label for="username">Name</label>
-        <input type="text" class="form-control" id="username" name="username">
-        <small class="form-text text-muted"></small>
-      </div>
       <div class="form-group">
         <label for="exampleInputEmail1">Email address</label>
         <input type="email" class="form-control" id="exampleInputEmail1" name="email" aria-describedby="emailHelp">
@@ -108,9 +121,7 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
     </form>
 
 <?php
-    if($login){
-        header("Location: product_list.php");
-    } else if($showError) {
+    if($showError) {
         echo '<div class="alert alert-danger" role="alert">' . $showError . '</div>';
     }
 ?>

@@ -1,14 +1,12 @@
 <?php
-session_start();
-
-// Get product ID from URL
-$product_id = $_GET['id'];
-
-// Remove product from cart
-if (isset($_SESSION['cart'][$product_id])) {
-    unset($_SESSION['cart'][$product_id]);
+include 'Partials/_dbconnect[login].php';
+if (isset($_GET['id'])) {
+    $cart_id = (int) $_GET['id'];
+    $sql = "DELETE FROM product_added_to_cart WHERE Cart_Id = $cart_id";
+    mysqli_query($conn, $sql);
+    $sql2 = "DELETE FROM cart WHERE Cart_Id = $cart_id";
+    mysqli_query($conn, $sql2);
+    header("Location: Cart.php");
+    exit();
 }
-
-// Go back to cart
-header("Location: Cart.php");
 ?>
